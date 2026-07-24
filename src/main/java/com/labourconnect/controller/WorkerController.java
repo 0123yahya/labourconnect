@@ -1,7 +1,9 @@
 package com.labourconnect.controller;
 
+import com.labourconnect.dto.WorkerRequest;
 import com.labourconnect.entity.Worker;
 import com.labourconnect.service.WorkerService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -18,8 +20,8 @@ public class WorkerController {
     // Manual onboarding endpoint - this is how you'll register your first 100 workers,
     // e.g. by looping this call from a small script or a Postman collection.
     @PostMapping
-    public ResponseEntity<Worker> createWorker(@RequestBody Worker worker) {
-        Worker saved = workerService.createWorker(worker);
+    public ResponseEntity<Worker> createWorker(@Valid @RequestBody WorkerRequest request) {
+        Worker saved = workerService.createWorker(request);
         return ResponseEntity.ok(saved);
     }
 

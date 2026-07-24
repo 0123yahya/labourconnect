@@ -1,7 +1,9 @@
 package com.labourconnect.controller;
 
+import com.labourconnect.dto.ClientRequest;
 import com.labourconnect.entity.Client;
 import com.labourconnect.service.ClientService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -16,8 +18,8 @@ public class ClientController {
     private final ClientService clientService;
 
     @PostMapping
-    public ResponseEntity<Client> createClient(@RequestBody Client client) {
-        Client saved = clientService.createClient(client);
+    public ResponseEntity<Client> createClient(@Valid @RequestBody ClientRequest request) {
+        Client saved = clientService.createClient(request);
         return ResponseEntity.ok(saved);
     }
 

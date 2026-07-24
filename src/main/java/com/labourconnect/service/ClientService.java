@@ -1,5 +1,6 @@
 package com.labourconnect.service;
 
+import com.labourconnect.dto.ClientRequest;
 import com.labourconnect.entity.Client;
 import com.labourconnect.repository.ClientRepository;
 import lombok.RequiredArgsConstructor;
@@ -13,7 +14,11 @@ public class ClientService {
 
     private final ClientRepository clientRepository;
 
-    public Client createClient(Client client) {
+    // Maps the incoming request DTO to a Client entity and persists it.
+    public Client createClient(ClientRequest request) {
+        Client client = new Client();
+        client.setPhoneNumber(request.getPhoneNumber());
+        client.setName(request.getName());
         return clientRepository.save(client);
     }
 

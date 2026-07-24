@@ -8,11 +8,15 @@ import com.labourconnect.repository.JobOfferRepository;
 import com.labourconnect.repository.JobRepository;
 import com.labourconnect.service.ClientService;
 import com.labourconnect.service.MatchingService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDate;
+import java.time.format.DateTimeParseException;
 import java.util.List;
 import java.util.Map;
 
@@ -29,17 +33,17 @@ public class JobController {
     // Creates the job, finding the client by phone number or creating a new one -
     // this mirrors what the WhatsApp bot will do automatically in Stage 2.
     @PostMapping
-    public ResponseEntity<Job> createJob(@RequestBody JobRequest request) {
+    public ResponseEntity<Job> createJob(@Valid @RequestBody JobRequest request) {
         Client client = clientService.findOrCreateByPhoneNumber(
                 request.getClientPhoneNumber(), request.getClientName());
 
         Job job = new Job();
         job.setClient(client);
-        job.setServiceType(Skill.valueOf(request.getServiceType().toUpperCase()));
+        job.setServiceType(parseSkill(request.getServiceType()));
         job.setArea(request.getArea());
         job.setBudget(request.getBudget());
         if (request.getPreferredDate() != null && !request.getPreferredDate().isBlank()) {
-            job.setPreferredDate(LocalDate.parse(request.getPreferredDate()));
+            job.setPreferredDate(parseDate(request.getPreferredDate()));
         }
         job.setStatus(JobStatus.REQUESTED);
 
@@ -76,12 +80,8 @@ public class JobController {
     // from the webhook handler instead of Postman.
     @PostMapping("/{id}/accept/{workerId}")
     public ResponseEntity<?> acceptOffer(@PathVariable Long id, @PathVariable Long workerId) {
-        try {
-            Booking booking = matchingService.acceptOffer(id, workerId);
-            return ResponseEntity.ok(booking);
-        } catch (IllegalStateException e) {
-            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
-        }
+        Booking booking = matchingService.acceptOffer(id, workerId);
+        return ResponseEntity.ok(booking);
     }
 
     // Simulates a worker replying NO.
@@ -89,5 +89,21 @@ public class JobController {
     public ResponseEntity<?> declineOffer(@PathVariable Long id, @PathVariable Long workerId) {
         matchingService.declineOffer(id, workerId);
         return ResponseEntity.ok(Map.of("message", "Offer declined"));
+    }
+
+    private Skill parseSkill(String serviceType) {
+        try {
+            return Skill.valueOf(serviceType.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid serviceType: " + serviceType);
+        }
+    }
+
+    private LocalDate parseDate(String preferredDate) {
+        try {
+            return LocalDate.parse(preferredDate);
+        } catch (DateTimeParseException e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid preferredDate: " + preferredDate);
+        }
     }
 }
