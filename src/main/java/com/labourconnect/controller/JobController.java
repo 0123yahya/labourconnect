@@ -4,10 +4,11 @@ import com.labourconnect.dto.JobRequest;
 import com.labourconnect.entity.*;
 import com.labourconnect.enums.JobStatus;
 import com.labourconnect.enums.Skill;
-import com.labourconnect.repository.ClientRepository;
 import com.labourconnect.repository.JobOfferRepository;
 import com.labourconnect.repository.JobRepository;
+import com.labourconnect.service.ClientService;
 import com.labourconnect.service.MatchingService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -17,34 +18,20 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/jobs")
+@RequiredArgsConstructor
 public class JobController {
 
     private final JobRepository jobRepository;
-    private final ClientRepository clientRepository;
+    private final ClientService clientService;
     private final JobOfferRepository jobOfferRepository;
     private final MatchingService matchingService;
-
-    public JobController(JobRepository jobRepository,
-                          ClientRepository clientRepository,
-                          JobOfferRepository jobOfferRepository,
-                          MatchingService matchingService) {
-        this.jobRepository = jobRepository;
-        this.clientRepository = clientRepository;
-        this.jobOfferRepository = jobOfferRepository;
-        this.matchingService = matchingService;
-    }
 
     // Creates the job, finding the client by phone number or creating a new one -
     // this mirrors what the WhatsApp bot will do automatically in Stage 2.
     @PostMapping
     public ResponseEntity<Job> createJob(@RequestBody JobRequest request) {
-        Client client = clientRepository.findByPhoneNumber(request.getClientPhoneNumber())
-                .orElseGet(() -> {
-                    Client newClient = new Client();
-                    newClient.setPhoneNumber(request.getClientPhoneNumber());
-                    newClient.setName(request.getClientName());
-                    return clientRepository.save(newClient);
-                });
+        Client client = clientService.findOrCreateByPhoneNumber(
+                request.getClientPhoneNumber(), request.getClientName());
 
         Job job = new Job();
         job.setClient(client);
