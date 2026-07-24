@@ -1,11 +1,7 @@
 package com.labourconnect.controller;
 
 import com.labourconnect.entity.Client;
-import com.labourconnect.entity.Worker;
 import com.labourconnect.repository.ClientRepository;
-import com.labourconnect.repository.WorkerRepository;
-import com.labourconnect.service.MatchingService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 

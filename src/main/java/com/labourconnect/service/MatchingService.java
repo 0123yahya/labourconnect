@@ -9,28 +9,20 @@ import com.labourconnect.repository.BookingRepository;
 import com.labourconnect.repository.JobOfferRepository;
 import com.labourconnect.repository.JobRepository;
 import com.labourconnect.repository.WorkerRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
+@RequiredArgsConstructor
 public class MatchingService {
 
     private final JobRepository jobRepository;
     private final WorkerRepository workerRepository;
     private final JobOfferRepository jobOfferRepository;
     private final BookingRepository bookingRepository;
-
-    public MatchingService(JobRepository jobRepository,
-                            WorkerRepository workerRepository,
-                            JobOfferRepository jobOfferRepository,
-                            BookingRepository bookingRepository) {
-        this.jobRepository = jobRepository;
-        this.workerRepository = workerRepository;
-        this.jobOfferRepository = jobOfferRepository;
-        this.bookingRepository = bookingRepository;
-    }
 
     /**
      * Finds all active workers matching the job's skill + area and broadcasts
