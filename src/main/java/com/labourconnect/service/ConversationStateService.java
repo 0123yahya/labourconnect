@@ -1,6 +1,7 @@
 package com.labourconnect.service;
 
 import com.labourconnect.entity.ConversationState;
+import com.labourconnect.enums.ConversationRole;
 import com.labourconnect.enums.ConversationStatus;
 import com.labourconnect.repository.ConversationStateRepository;
 import lombok.RequiredArgsConstructor;
@@ -33,6 +34,24 @@ public class ConversationStateService {
                 });
     }
 
+    // Starts (or restarts) a conversation session in a given role: sets the
+    // active role, clears any in-progress step/context from a previous flow,
+    // marks the session ACTIVE, and bumps the timestamp. This is a persistence
+    // operation only - the caller (RoleResolutionService, and later
+    // MessageRouterService) decides which role to activate; this method never
+    // decides the role itself.
+    public ConversationState activateConversationAs(Long id, ConversationRole role) {
+        ConversationState state = conversationStateRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("ConversationState not found: " + id));
+
+        state.setActiveRole(role);
+        state.setCurrentStep(null);
+        state.setContextData(null);
+        state.setStatus(ConversationStatus.ACTIVE);
+        state.setUpdatedAt(LocalDateTime.now());
+        return conversationStateRepository.save(state);
+    }
+
     // Advances a conversation to a new step, optionally updating the accumulated
     // context data collected so far. Called by the future MessageRouterService
     // once it has decided what step comes next - this method only persists that
@@ -60,14 +79,15 @@ public class ConversationStateService {
         return conversationStateRepository.save(state);
     }
 
-    // Resets a conversation back to a fresh ACTIVE state with no step or context -
-    // for the fallback/timeout-reset handling planned in a later task.
+    // Resets a conversation back to a fresh ACTIVE state with no step, role, or
+    // context - for the fallback/timeout-reset handling planned in a later task.
     public ConversationState resetConversation(Long id) {
         ConversationState state = conversationStateRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("ConversationState not found: " + id));
 
         state.setCurrentStep(null);
         state.setContextData(null);
+        state.setActiveRole(null);
         state.setStatus(ConversationStatus.ACTIVE);
         state.setUpdatedAt(LocalDateTime.now());
         return conversationStateRepository.save(state);

@@ -1,5 +1,6 @@
 package com.labourconnect.entity;
 
+import com.labourconnect.enums.ConversationRole;
 import com.labourconnect.enums.ConversationStatus;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -36,6 +37,13 @@ public class ConversationState {
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(columnDefinition = "json")
     private String contextData;
+
+    // Which marketplace role (CLIENT / WORKER) this conversation is currently
+    // operating as. Decided by RoleResolutionService, persisted here so the
+    // same role is used consistently across every message in the session.
+    @Enumerated(EnumType.STRING)
+    @Column(columnDefinition = "VARCHAR(30)")
+    private ConversationRole activeRole;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, columnDefinition = "VARCHAR(30)")

@@ -14,4 +14,6 @@ public interface JobOfferRepository extends JpaRepository<JobOffer, Long> {
     Optional<JobOffer> findByJobIdAndWorkerId(Long jobId, Long workerId);
 
     List<JobOffer> findByJobIdAndResponse(Long jobId, OfferResponse response);
+
+    boolean existsByWorker_PhoneNumberAndResponse(String phoneNumber, OfferResponse response);
 }
